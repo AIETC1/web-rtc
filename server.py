@@ -3,6 +3,7 @@ import json
 import logging
 import os
 
+import aiohttp_cors
 import cv2
 from aiohttp import web
 from av import VideoFrame
@@ -42,11 +43,29 @@ class VideoTransformTrack(MediaStreamTrack):
         # fontScale
         fontScale = 1
         # Blue color in BGR
-        color = (255, 0, 0)
+        color = (200,0,0)
         # Line thickness of 2 px
         thickness = 2
         # Using cv2.putText() method
         img = cv2.putText(img, self.text, org, font, fontScale, color, thickness, cv2.LINE_AA)
+
+        # Test coordinates to draw a line
+        x, y, w, h = 108, 107, 193, 204
+
+        # Draw line on overlay and original input image to show difference
+        cv2.line(img, (x, y), (x + w, x + h), (36, 255, 12), 6)
+        cv2.line(img, (x, y), (x + w, x + h), (36, 255, 12), 6)
+
+        # Transparency value
+        alpha = 0.50
+
+        # Perform weighted addition of the input image and the overlay
+        img = cv2.addWeighted(img, alpha, img, 1 - alpha, 0)
+
+        ksize = (10, 10)
+
+        # Using cv2.blur() method
+        img = cv2.blur(img, ksize)
         # ===================== Custom Image ======================
 
         # rebuild a VideoFrame, preserving timing information
@@ -123,8 +142,17 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     app = web.Application()
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+        )
+    })
+
     app.on_shutdown.append(on_shutdown)
-    app.router.add_get("/", index)
-    app.router.add_get("/client.js", javascript)
-    app.router.add_post("/offer", offer)
+    cors.add(app.router.add_get("/", index))
+    cors.add(app.router.add_get("/client.js", javascript))
+    cors.add(app.router.add_post("/offer", offer))
+
     web.run_app(app, access_log=None, host="127.0.0.1", port=8080)

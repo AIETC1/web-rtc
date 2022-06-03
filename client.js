@@ -2,12 +2,11 @@
 let pc = null;
 
 function createPeerConnection() {
-    pc = new RTCPeerConnection({
-        sdpSemantics: 'unified-plan'
-    });
+    pc = new RTCPeerConnection({sdpSemantics: 'unified-plan'});
 
     // connect video
     pc.addEventListener('track', function(evt) {
+        console.log(evt)
         document.getElementById('video').srcObject = evt.streams[0];
     });
 
@@ -16,15 +15,20 @@ function createPeerConnection() {
 
 function negotiate() {
     return pc.createOffer().then(function(offer) {
+        console.log("A")
         return pc.setLocalDescription(offer);
     }).then(function() {
+        console.log("B")
         // wait for ICE gathering to complete
         return new Promise(function(resolve) {
             if (pc.iceGatheringState === 'complete') {
+                console.log("C")
                 resolve();
             } else {
+                console.log("D")
                 function checkState() {
                     if (pc.iceGatheringState === 'complete') {
+                        console.log("E")
                         pc.removeEventListener('icegatheringstatechange', checkState);
                         resolve();
                     }
@@ -33,6 +37,7 @@ function negotiate() {
             }
         });
     }).then(function() {
+        console.log("F")
         let offer = pc.localDescription;
 
         return fetch('http://127.0.0.1:8080/offer', {
@@ -47,10 +52,14 @@ function negotiate() {
             method: 'POST'
         });
     }).then(function(response) {
+        console.log("G")
         return response.json();
     }).then(function(answer) {
+        console.log("H")
+        console.log(answer)
         return pc.setRemoteDescription(answer);
     }).catch(function(e) {
+        console.log("I")
         alert(e);
     });
 }
@@ -58,16 +67,14 @@ function negotiate() {
 function start() {
     pc = createPeerConnection();
 
-    let constraints = {
-        video: true
-    };
+    let constraints = {video: true};
 
-    document.getElementById('media').style.display = 'block';
     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
         stream.getTracks().forEach(function(track) {
             pc.addTrack(track, stream);
         });
         return negotiate();
+
     }, function(err) {
         alert('Could not acquire media: ' + err);
     });
