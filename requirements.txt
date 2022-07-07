@@ -16,7 +16,7 @@ google-crc32c==1.3.0
 idna==3.3
 multidict==6.0.2
 netifaces==0.11.0
-numpy==1.21.6
+numpy==1.22.4
 opencv-python==4.5.5.64
 pycparser==2.21
 pyee==9.0.4

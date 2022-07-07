@@ -7,7 +7,14 @@ function createPeerConnection() {
     // connect video
     pc.addEventListener('track', function(evt) {
         console.log(evt)
-        document.getElementById('video').srcObject = evt.streams[0];
+        if (evt.track.kind == 'video') {
+            console.log('Attach track to element video');
+            document.getElementById('video').srcObject = evt.streams[0];
+        }
+        else {
+            console.log('Attach track to element audio');
+            document.getElementById('audio').srcObject = evt.streams[0];
+        }
     });
 
     return pc;
@@ -44,7 +51,8 @@ function negotiate() {
             body: JSON.stringify({
                 sdp: offer.sdp,
                 type: offer.type,
-                text: "Ini Text"
+                video: document.getElementById('video-transform').value,
+                audio: document.getElementById('audio-effect').value
             }),
             headers: {
                 'Content-Type': 'application/json'
@@ -55,8 +63,7 @@ function negotiate() {
         console.log("G")
         return response.json();
     }).then(function(answer) {
-        console.log("H")
-        console.log(answer)
+        console.log("H", answer)
         return pc.setRemoteDescription(answer);
     }).catch(function(e) {
         console.log("I")
@@ -67,7 +74,7 @@ function negotiate() {
 function start() {
     pc = createPeerConnection();
 
-    let constraints = {video: true};
+    let constraints = {audio: true, video: true,};
 
     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
         stream.getTracks().forEach(function(track) {

@@ -1,17 +1,83 @@
 <html>
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebRTC demo</title>
+    <style>
+        html {
+            max-width: 568px;
+            width: 100%;
+            margin: 5px auto;
+            background: whitesmoke;
+        }
+        body {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            padding: 10px 0;
+            border: none;
+            box-shadow: 0px 0px 4px -2px rgb(0 0 0 / 50%);
+            border-radius: 8px;
+            width: 49%;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+        }
+        #start {
+            background:blue;
+        }
+        #stop {
+            background: rebeccapurple;
+        }
+        video {
+            width: 100%;
+            border-radius: 8px;
+        }
+        .option {
+            margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 10px;
+        }
+        #media {
+            max-width: 1280px;
+        }
+    </style>
 </head>
+
 <body>
-    <button id="start" onclick="start()">Start</button>
-    <button id="stop" onclick="stop()">Stop</button>
-
-    <div id="media">
-        <video id="video" autoplay="true" playsinline="true"></video>
+    <h1 style="text-align: center">WebRTC demo</h1>
+    <h2>Options</h2>
+    <div class="option">
+        <select id="audio-effect">
+            <option value="normal">Normal</option>
+            <option value="robot_voice">Robot Voice</option>
+            <option value="alien_voice">Alien Voice</option>
+            <option value="chipmunk" selected>Chipmunk</option>
+        </select>
+        <select id="video-transform">
+            <option value="none">No transform</option>
+            <option value="edges" selected>Edge detection</option>
+            <option value="cartoon">Cartoon effect</option>
+            <option value="rotate">Rotate</option>
+        </select>
     </div>
-
+    <div class="btn-group">
+        <button id="start" onclick="start()">Start</button>
+        <button id="stop" onclick="stop()">Stop</button>
+    </div>
+    <hr>
+    <div id="media">
+        <h2>Media</h2>
+        <video id="video" autoplay="true" playsinline="true"></video>
+        <audio id="audio" autoplay="true"></audio>
+    </div>
     <script src="./client.js"></script>
 </body>
 </html>
