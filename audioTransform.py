@@ -1,6 +1,20 @@
 from av import AudioFrame
 import numpy as np
-import librosa
+from librosa.effects import pitch_shift
+from aiortc import MediaStreamTrack
+
+
+class AudioTransformTrack(MediaStreamTrack):
+    kind = 'audio'
+
+    def __init__(self, track, audio_effect):
+        super().__init__()
+        self.track = track
+        self.audio_effect = audio_effect
+
+    async def recv(self):
+        frame = await self.track.recv()
+        return await apply_audio_effects(audio_effect=self.audio_effect, frame=frame)
 
 
 async def apply_audio_effects(frame: AudioFrame, audio_effect='normal'):
@@ -20,7 +34,7 @@ async def apply_audio_effects(frame: AudioFrame, audio_effect='normal'):
         return await pitch_changer.process()
 
 
-class AlienVoice():
+class AlienVoice:
     def __init__(self, frame: AudioFrame, mod_freq: int = 500):
         self.frame = frame
         self.raw_samples = self.frame.to_ndarray()
@@ -61,7 +75,7 @@ class AudioPitch2:
     async def process(self):
         # Pitch shifting?  Let's gear-shift by a major third (4 semitones)
         y = self.audio.astype(np.float32)
-        chipmunk = librosa.effects.pitch_shift(y, self.frame.sample_rate, self.octaves['chipmunk_9'])
+        chipmunk = pitch_shift(y, self.frame.sample_rate, self.octaves['chipmunk_9'])
         chipmunk = chipmunk.astype(np.int16)
 
         new_samples = chipmunk.reshape(self.raw_samples.shape)  # From 1D to 2D
@@ -73,7 +87,7 @@ class AudioPitch2:
         return new_frame
 
 
-class RobotVoice():
+class RobotVoice:
     def __init__(
             self, frame: AudioFrame, lookup_samples: int = 1024,
             mod_f: int = 50, vb: float = 0.2, vl: float = 0.4, h: int = 4
@@ -178,19 +192,5 @@ async def diode_lookup(n_samples, vb, vl, h):
             result[i] = h * ((v - vb) ** 2) / (2 * vl - 2 * vb)
         else:
             result[i] = h * v - h * vl + (h * (vl - vb) ** 2) / (2 * vl - 2 * vb)
-
-    return result
-
-
-async def raw_diode(signal, vb, vl, h):
-    result = np.zeros(signal.shape)
-    for i in range(0, signal.shape[0]):
-        v = signal[i]
-        if v < vb:
-            result[i] = 0
-        elif vb < v <= vl:
-            result[i] = h * ((v - vb) ** 2) / (2 * vl - 2 * vb)
-    else:
-        result[i] = h * v - h * vl + (h * (vl - vb) ** 2) / (2 * vl - 2 * vb)
 
     return result
